@@ -19,7 +19,7 @@ COPY . /app
 
 # Download YOLO model (best.pt) from GitHub
 # 🔁 Replace the URL below with your actual raw GitHub link to the best.pt file
-RUN curl -L -o best.pt https://raw.githubusercontent.com/<your-username>/<repo-name>/main/best.pt
+RUN curl -L -o best.pt https://github.com/vishalrajput29/brain/blob/main/best.pt
 
 # Install Python dependencies
 RUN pip install --no-cache-dir -r requirements.txt
