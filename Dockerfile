@@ -1,0 +1,31 @@
+# Base image
+FROM python:3.9-slim-buster
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    git \
+    curl \
+    ffmpeg \
+    libsm6 \
+    libxext6 \
+    libgl1-mesa-glx \
+    && rm -rf /var/lib/apt/lists/*
+
+# Set working directory
+WORKDIR /app
+
+# Copy local files to container
+COPY . /app
+
+# Download YOLO model (best.pt) from GitHub
+# 🔁 Replace the URL below with your actual raw GitHub link to the best.pt file
+RUN curl -L -o best.pt https://github.com/vishalrajput29/brain/blob/main/best.pt
+
+# Install Python dependencies
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Expose Flask default port
+EXPOSE 5000
+
+# Run the Flask app
+CMD ["python3", "app.py"]
