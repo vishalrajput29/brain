@@ -1,25 +1,35 @@
 from flask import Flask, render_template, request, send_file
 from ultralytics import YOLO
+import gdown
 import os
 from PIL import Image
 import io
-import numpy as np
-import cv2
 
-from ultralytics.nn.modules.block import C3k2  # Or the correct class name
+# Google Drive file info
+GDRIVE_FILE_ID = "1nFgDiO15zwI8Z6fKujd4xRNMGh_XliK5"
+MODEL_FILENAME = "best.pt"
 
-#start
+# Step 1: Download model from Google Drive if not already present
+def download_model_from_gdrive():
+    if not os.path.exists(MODEL_FILENAME):
+        url = f"https://drive.google.com/uc?id={GDRIVE_FILE_ID}"
+        print("📥 Downloading model from Google Drive...")
+        gdown.download(url, MODEL_FILENAME, quiet=False)
+        print("✅ Model downloaded successfully.")
+
+# Step 2: Download the model
+download_model_from_gdrive()
+
+# Step 3: Load the model
+model = YOLO(MODEL_FILENAME)
+
+# Flask setup
 app = Flask(__name__)
-#load model first
-# Load the trained YOLO model (update the path to your model)
-model = YOLO('best.pt')
 
-# Route to serve the home page
 @app.route('/')
 def home():
     return render_template('index.html')
 
-# Route to handle image upload and prediction
 @app.route('/predict', methods=['POST'])
 def predict():
     if 'image' not in request.files:
@@ -30,23 +40,16 @@ def predict():
 
     # Perform inference
     results = model(image)
-
-    # Get the first result (YOLO returns a list of results)
     result = results[0]
+    result_image = result.plot()  # Image with bounding boxes
 
-    # Convert the result to a numpy array (this is the bounding-boxed image)
-    result_image = result.plot()  # Get the image with bounding boxes
-
-    # Convert numpy array to a PIL Image
+    # Convert result image to JPEG in-memory
     result_image_pil = Image.fromarray(result_image)
-
-    # Save the result to a BytesIO object
     output = io.BytesIO()
     result_image_pil.save(output, format="JPEG")
     output.seek(0)
 
-    # Return the processed image
     return send_file(output, mimetype='image/jpeg')
 
 if __name__ == '__main__':
-    app.run(host="0.0.0.0",port=5000)
+    app.run(host="0.0.0.0", port=5000)
